@@ -50,32 +50,30 @@ def recupere_donnees(element):
     return retour
 
 def calcule_distance_parcourue(donnees_avant,donnees_actuelles):
-    #http://www.ga.gov.au/earth-monitoring/geodesy/geodetic-techniques/distance-calculation-algorithms.html
-    #on se base sur le sphérical algorithm cf. mail avec Nicolas: les distances entre les points sont de quelques mètres
-    #la distance calculée est directement en kilomètres
+    #abandon de la formule autralienne pour une formule trouvée sur developpez, donc une formule adaptée à la France
+    #http://www.developpez.net/forums/d948034/webmasters-developpement-web/javascript/bibliotheques-frameworks/mappy/calculer-distance-entre-coordonnees/
     distance=None
     vitesse = -1
     if 'longitude' in donnees_avant.keys() and donnees_avant['longitude'] is not None:
-        G1=math.radians(donnees_avant['longitude'])
+        lon1=math.radians(donnees_avant['longitude'])
         if 'longitude' in donnees_actuelles.keys() and donnees_actuelles['longitude'] is not None:
-            G2=math.radians(donnees_actuelles['longitude'])
-            DG=math.radians(G2-G1)
+            lon2=math.radians(donnees_actuelles['longitude'])
+            t3 = math.cos(lon1 - lon2);
             if 'latitude' in donnees_avant.keys() and donnees_avant['latitude'] is not None:
-                L1=math.radians(donnees_avant['latitude'])
+                lat1=math.radians(donnees_avant['latitude'])
                 if 'latitude' in donnees_actuelles.keys() and donnees_actuelles['latitude'] is not None:
-                    L2=math.radians(donnees_actuelles['latitude'])
-                    DL=math.radians(L2-L1)
-                    #D = 1.852 * 60 * ARCOS ( SIN(L1) * SIN(L2) + COS(L1) * COS(L2) * COS(DG))
-                    #D = 1.852 * 60 * math.acos( math.sin(L1) * math.sin(L2) + math.cos(L1) * math.cos(L2) * math.cos(DG))
-                    TERM1 = 111.08956 * (DL + 0.000001)
-                    TERM2 = math.cos(L1 + (DL/2))
-                    TERM3 = (DG + 0.000001) / (DL + 0.000001)
-                    D = TERM1 / math.cos(math.atan(TERM2 * TERM3))
-                    distance = 100 * D #correction arbitraire pour avoir le résultat en kilomètres apparemment
+                    lat2=math.radians(donnees_actuelles['latitude'])
+                    t1 = math.sin(lat1) * math.sin(lat2);
+                    t2 = math.cos(lat1) * math.cos(lat2);
+                    t4 = t2 * t3;
+                    t5 = t1 + t4;
+                    rad_dist = math.atan(-t5 / math.sqrt(-t5 * t5 + 1)) + 2 * math.atan(1);
+                    #we get a distance in meters
+                    distance = (rad_dist * 3437.74677 * 1.1508) * 1.6093470878864446 * 1000
                     if 'date' in donnees_avant.keys() and donnees_avant['date'] is not None:
                         if 'date' in donnees_actuelles.keys() and donnees_actuelles['date'] is not None:
                             delta = donnees_actuelles['date'] - donnees_avant['date']
-                            vitesse = distance / (delta.total_seconds() / 3600)
+                            vitesse = distance / delta.total_seconds() #speed in meter/second
                         else:
                             print ("timestamp du point 2 absente\n")
                     else:
@@ -120,18 +118,19 @@ if __name__ == '__main__':
         avancee['dc'] = davant + delta
         avancee['t'] = p['date']
         delta_pour_vitesse = avancee['dc'] - prise_vitesse_avant[1]
-        if delta_pour_vitesse >= (calcul_vitesse_tous_les_m / 1000) and avancee['v'] > 0 and prise_vitesse_avant[0] is not None: 
+        if delta_pour_vitesse >= (calcul_vitesse_tous_les_m) and avancee['v'] > 0 and prise_vitesse_avant[0] is not None: 
             velem['t'] = p['date']
             delta_t = velem['t'] - prise_vitesse_avant[0]
-            velem['v'] = delta_pour_vitesse / (delta_t.total_seconds() / 3600)
+            velem['dc'] = avancee['dc']
+            velem['v'] = delta_pour_vitesse / (delta_t.total_seconds())
             vitesses.append(velem)
-            vplot.write("{0} {1}\n".format(velem['t'].strftime("%H:%M:%S"),velem['v']))
-            print ("{0} {1}\n".format(velem['t'].strftime("%H:%M:%S"),velem['v']))
+            vplot.write("{0} {1} {2}\n".format(velem['t'].strftime("%H:%M:%S"),velem['dc']/1000,velem['v']*3.6))
+            print ("{0} {1} {2}\n".format(velem['t'].strftime("%H:%M:%S"),velem['dc']/1000,velem['v']*3.6))
         pavant = p
         davant = avancee['dc']
         avancees.append(avancee)
-        dplot.write("{0} {1} {2}\n".format(avancee['t'].strftime("%H:%M:%S"),avancee['dc'],avancee['v']))
-        print("{0} {1} {2}\n".format(avancee['t'].strftime("%H:%M:%S"),avancee['dc'],avancee['v']))        
+        dplot.write("{0} {1} {2}\n".format(avancee['t'].strftime("%H:%M:%S"),avancee['dc']/1000,avancee['v']*3.6))
+        print("{0} {1} {2}\n".format(avancee['t'].strftime("%H:%M:%S"),avancee['dc']/1000,avancee['v']*3.6))        
     print ("il y a {0} distances calculées\n".format(len(avancees)))
     print ("il y a {0} vitesses calculées\n".format(len(vitesses)))
     dplot.close()
