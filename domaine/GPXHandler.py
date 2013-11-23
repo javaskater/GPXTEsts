@@ -94,7 +94,7 @@ def calcule_distance_parcourue(donnees_avant,donnees_actuelles):
         print ("longitude du point 1 absente\n")
     return (distance , vitesse)
 if __name__ == '__main__':
-    path_gpx = "/home/jpmena/RSM/GPXTEsts/GPXFiles/Solene/aulnay 16 nov 2013.gpx"
+    path_gpx = "/home/jpmena/RSM/GPXTEsts/GPXFiles/Solene/aulnay 23 nov 2013.gpx"
     points=[]
     for domElem in parse_and_remove(path_gpx):
         points.append(recupere_donnees(domElem))
@@ -143,10 +143,10 @@ if __name__ == '__main__':
             if len(avancee) > 0:
                 avancees.append(avancee)
                 pAvant = p
-                iplot.write("{0} {1} {2} vitesse_instant\n".format(avancee['t'].strftime("%H:%M:%S"),avancee['dc']/1000,avancee['v']*3.6))
-                print ("{0} {1} {2} vitesse_instant\n".format(avancee['t'].strftime("%H:%M:%S"),avancee['dc']/1000,avancee['v']*3.6))
-                lplot.write("{0} {1} {2} vitesse_lissee\n".format(avancee['t'].strftime("%H:%M:%S"),avancee['dc']/1000,avancee['vl']*3.6))
-                print("{0} {1} {2} vitesse_lissee\n".format(avancee['t'].strftime("%H:%M:%S"),avancee['dc']/1000,avancee['vl']*3.6))
+                iplot.write("{0} {1} {2} vitesse_instant\n".format(avancee['t'].strftime("%H:%M:%S"),avancee['dc'],avancee['v']))
+                print ("{0} {1} {2} vitesse_instant\n".format(avancee['t'].strftime("%H:%M:%S"),avancee['dc'],avancee['v']))
+                lplot.write("{0} {1} {2} vitesse_lissee\n".format(avancee['t'].strftime("%H:%M:%S"),avancee['dc'],avancee['vl']))
+                print("{0} {1} {2} vitesse_lissee\n".format(avancee['t'].strftime("%H:%M:%S"),avancee['dc'],avancee['vl']))
             else:
                print("distance parouru None, point négligeable ...") 
     print ("il y a {0} distances calculées\n".format(len(avancees)))
